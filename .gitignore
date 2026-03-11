@@ -1,0 +1,7 @@
+node_modules/
+backend/node_modules/
+
+.env
+
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
