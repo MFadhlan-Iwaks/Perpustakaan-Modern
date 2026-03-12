@@ -3,7 +3,7 @@ const Borrowing = require('../models/borrowingModel');
 const getBorrowings = async (req, res) => {
     try {
         let borrowings;
-        // Jika Admin, tampilkan semua riwayat. Jika User, tampilkan miliknya saja.
+
         if (req.user.role === 'ADMIN') {
             borrowings = await Borrowing.getAllBorrowings();
         } else {
@@ -18,14 +18,14 @@ const getBorrowings = async (req, res) => {
 const createBorrowing = async (req, res) => {
     try {
         const { book_id } = req.body;
-        const user_id = req.user.id; // Diambil dari JWT Payload (otomatis dari middleware)
+        const user_id = req.user.id;
         
         if (!book_id) return res.status(400).json({ message: 'ID Buku wajib diisi' });
 
         await Borrowing.borrowBook(user_id, book_id);
         res.status(201).json({ message: 'Buku berhasil dipinjam' });
     } catch (error) {
-        // Tangkap pesan error dari model (seperti "Stok buku habis")
+        
         if (error.message === 'Stok buku habis' || error.message === 'Buku tidak ditemukan') {
             return res.status(400).json({ message: error.message });
         }

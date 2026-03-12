@@ -1,4 +1,4 @@
-'use client'; // Wajib ditambahkan agar komponen ini berjalan di client-side (bisa pakai hooks)
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
             if (res.ok) {
                 setTokens(data.accessToken, data.refreshToken);
-                router.push('/dashboard'); // Pindah ke halaman dashboard
+                router.push('/dashboard');
             } else {
                 setError(data.message || 'Login gagal');
             }

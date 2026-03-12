@@ -1,4 +1,3 @@
-// src/lib/api.js
 
 export const BASE_URL = 'http://localhost:5000/api';
 
@@ -26,7 +25,7 @@ export const clearTokens = () => {
 export const getAuthHeaders = () => {
     const token = getToken();
     return {
-        'Content-Type': 'application/json', // <-- Tambahkan baris ini
+        'Content-Type': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''
     };
 };

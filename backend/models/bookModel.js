@@ -19,7 +19,7 @@ const createBook = async (title, author, published_year, image, stock) => {
 };
 
 const updateBook = async (id, title, author, published_year, image, stock) => {
-    // Gunakan COALESCE(?) agar jika gambar tidak diupdate (null), gambar lama tetap dipertahankan
+    
     const [result] = await db.query(
         'UPDATE books SET title = ?, author = ?, published_year = ?, stock = ?, image = COALESCE(?, image) WHERE id = ?',
         [title, author, published_year, stock, image, id]

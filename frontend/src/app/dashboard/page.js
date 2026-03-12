@@ -6,19 +6,17 @@ import { BASE_URL, getToken, clearTokens, getAuthHeaders, isAuthenticated } from
 
 export default function DashboardPage() {
     const router = useRouter();
-    
-    // States
+
     const [userPayload, setUserPayload] = useState(null);
-    const [activeTab, setActiveTab] = useState('books'); // 'books', 'borrowings', 'users'
+    const [activeTab, setActiveTab] = useState('books');
     
     const [books, setBooks] = useState([]);
     const [borrowings, setBorrowings] = useState([]);
     const [users, setUsers] = useState([]);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [editBookData, setEditBookData] = useState(null); // Jika null, modal edit tertutup
+    const [editBookData, setEditBookData] = useState(null);
 
-    // Proteksi & Inisialisasi
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/login');
@@ -34,7 +32,6 @@ export default function DashboardPage() {
         }
     }, [router]);
 
-    // Fetch Data berdasarkan Tab Aktif
     useEffect(() => {
         if (!userPayload) return;
         if (activeTab === 'books') fetchBooks();
@@ -44,7 +41,6 @@ export default function DashboardPage() {
 
     const isAdmin = userPayload?.role === 'ADMIN';
 
-    // --- FUNGSI FETCH API ---
     const fetchBooks = async () => {
         try {
             const res = await fetch(`${BASE_URL}/books`, { headers: getAuthHeaders() });
@@ -67,7 +63,6 @@ export default function DashboardPage() {
         } catch (error) { console.error(error); }
     };
 
-    // --- FUNGSI AKSI BUKU ---
     const handleAddBook = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -118,7 +113,6 @@ export default function DashboardPage() {
         } catch (error) { console.error(error); }
     };
 
-    // --- FUNGSI AKSI PEMINJAMAN & USER ---
     const handleReturnBook = async (id) => {
         if (!confirm('Kembalikan buku ini?')) return;
         await fetch(`${BASE_URL}/borrowings/${id}/return`, { method: 'PUT', headers: getAuthHeaders() });
@@ -157,7 +151,6 @@ export default function DashboardPage() {
 
     return (
         <div className="bg-slate-50 min-h-screen pb-10">
-            {/* Navbar */}
             <nav className="bg-white border-b border-slate-200 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
@@ -174,7 +167,6 @@ export default function DashboardPage() {
             </nav>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                {/* Tab Navigation */}
                 <div className="border-b border-slate-200 mb-6">
                     <nav className="-mb-px flex space-x-8">
                         <button onClick={() => setActiveTab('books')} className={`${activeTab === 'books' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition`}>Katalog Buku</button>
@@ -185,7 +177,6 @@ export default function DashboardPage() {
                     </nav>
                 </div>
 
-                {/* TAB CONTENT: BOOKS */}
                 {activeTab === 'books' && (
                     <div>
                         <div className="flex justify-between items-center mb-4">
@@ -227,7 +218,6 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {/* TAB CONTENT: BORROWINGS */}
                 {activeTab === 'borrowings' && (
                     <div>
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Data Peminjaman</h2>
@@ -261,7 +251,6 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {/* TAB CONTENT: USERS (ADMIN ONLY) */}
                 {activeTab === 'users' && isAdmin && (
                     <div>
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Daftar Pengguna</h2>
@@ -294,7 +283,6 @@ export default function DashboardPage() {
                 )}
             </main>
 
-            {/* MODAL TAMBAH BUKU */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
@@ -331,7 +319,6 @@ export default function DashboardPage() {
                 </div>
             )}
 
-            {/* MODAL EDIT BUKU */}
             {editBookData && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">

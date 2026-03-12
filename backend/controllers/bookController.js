@@ -23,7 +23,7 @@ const getBook = async (req, res) => {
 const addBook = async (req, res) => {
     try {
         const { title, author, published_year, stock } = req.body;
-        // Ambil nama file jika ada gambar yang di-upload
+
         const image = req.file ? req.file.filename : null; 
         
         if (!title || !author || !published_year) {
@@ -40,7 +40,7 @@ const addBook = async (req, res) => {
 const updateBookInfo = async (req, res) => {
     try {
         const { title, author, published_year, stock } = req.body;
-        // Ambil nama file jika ada gambar baru yang di-upload, jika tidak maka null
+
         const image = req.file ? req.file.filename : null; 
 
         const affectedRows = await Book.updateBook(req.params.id, title, author, published_year, image, stock);

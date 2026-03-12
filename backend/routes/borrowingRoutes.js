@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const borrowingController = require('../controllers/borrowingController');
-const authenticateToken = require('../middleware/authMiddleware'); // Wajib login
-const authorizeAdmin = require('../middleware/adminMiddleware'); // Tambahkan di atas
+const authenticateToken = require('../middleware/authMiddleware');
+const authorizeAdmin = require('../middleware/adminMiddleware');
 
-router.use(authenticateToken); // Lindungi semua endpoint di bawahnya
+router.use(authenticateToken);
 
-// Endpoint Transaksi Peminjaman
 router.get('/borrowings', borrowingController.getBorrowings);
 router.post('/borrowings', borrowingController.createBorrowing);
 router.put('/borrowings/:id/return', borrowingController.returnBook);
