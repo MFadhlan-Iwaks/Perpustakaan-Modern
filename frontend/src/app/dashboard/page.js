@@ -240,7 +240,17 @@ export default function DashboardPage() {
                                             <td className="py-3 px-6 text-slate-600">{new Date(b.borrow_date).toLocaleDateString('id-ID')}</td>
                                             <td className="py-3 px-6"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${b.status === 'RETURNED' ? 'bg-slate-100 text-slate-700' : 'bg-blue-100 text-blue-700'}`}>{b.status === 'RETURNED' ? 'Dikembalikan' : 'Dipinjam'}</span></td>
                                             <td className="py-3 px-6 text-right">
-                                                {b.status !== 'RETURNED' && <button onClick={() => handleReturnBook(b.id)} className="text-green-600 hover:text-green-800 font-medium">Kembalikan</button>}
+                                                
+                                                {/* MODIFIKASI DIMULAI DI SINI */}
+                                                {b.status !== 'RETURNED' && (
+                                                    isAdmin ? (
+                                                        <button onClick={() => handleReturnBook(b.id)} className="text-green-600 hover:text-green-800 font-medium">Kembalikan</button>
+                                                    ) : (
+                                                        <span className="text-gray-500 italic text-sm">Menunggu verifikasi Admin</span>
+                                                    )
+                                                )}
+                                                {/* MODIFIKASI SELESAI */}
+
                                                 {isAdmin && <button onClick={() => handleDeleteBorrowing(b.id)} className="text-red-500 hover:text-red-700 font-medium ml-3">Hapus</button>}
                                             </td>
                                         </tr>
@@ -283,6 +293,7 @@ export default function DashboardPage() {
                 )}
             </main>
 
+            {/* Modal dan komponen lainnya tetap sama */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">

@@ -8,7 +8,7 @@ router.use(authenticateToken);
 
 router.get('/borrowings', borrowingController.getBorrowings);
 router.post('/borrowings', borrowingController.createBorrowing);
-router.put('/borrowings/:id/return', borrowingController.returnBook);
+router.put('/borrowings/:id/return', authorizeAdmin, borrowingController.returnBook);
 router.delete('/borrowings/:id', authorizeAdmin, borrowingController.removeBorrowing);
 
 module.exports = router;
