@@ -17,6 +17,35 @@ class KatalogScreen extends StatefulWidget {
 class _KatalogScreenState extends State<KatalogScreen> {
   final ApiService _apiService = ApiService();
 
+  Widget _buildSkeletonCard() {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(color: const Color(0xFFE2E8F0)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 12, width: double.infinity, color: const Color(0xFFE2E8F0)),
+                const SizedBox(height: 8),
+                Container(height: 10, width: 90, color: const Color(0xFFE2E8F0)),
+                const SizedBox(height: 10),
+                Container(height: 30, width: double.infinity, color: const Color(0xFFE2E8F0)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCoverPlaceholder({
     required IconData icon,
     required Color iconColor,
@@ -33,7 +62,7 @@ class _KatalogScreenState extends State<KatalogScreen> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey.shade700,
+              color: Colors.blueGrey.shade700,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -265,20 +294,33 @@ class _KatalogScreenState extends State<KatalogScreen> {
   }
 
   Widget _buildAddBookCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: () => _showBookFormDialog(),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primary.withValues(alpha: 0.1),
+              colorScheme.tertiary.withValues(alpha: 0.1),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.28)),
+        ),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add_circle_outline, size: 42, color: Colors.blue.shade700),
+              Icon(Icons.add_box_rounded, size: 44, color: colorScheme.primary),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Tambah Buku',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w800, color: colorScheme.primary),
               ),
             ],
           ),
@@ -353,23 +395,74 @@ class _KatalogScreenState extends State<KatalogScreen> {
   Widget build(BuildContext context) {
     final bookProvider = Provider.of<BookProvider>(context);
     final isAdmin = Provider.of<AuthProvider>(context).isAdmin;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (bookProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.62,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+        ),
+        itemCount: 6,
+        itemBuilder: (_, index) => _buildSkeletonCard(),
+      );
     }
 
     if (bookProvider.errorMessage != null) {
       return Center(
-        child: Text(
-          'Gagal memuat buku:\n${bookProvider.errorMessage}',
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.red),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.cloud_off_rounded, size: 52, color: Colors.red.shade400),
+              const SizedBox(height: 12),
+              Text(
+                'Gagal memuat buku:\n${bookProvider.errorMessage}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => bookProvider.loadBooks(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (bookProvider.books.isEmpty) {
-      return const Center(child: Text('Belum ada buku di perpustakaan.'));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.library_books_outlined, size: 56, color: Colors.blueGrey.shade300),
+              const SizedBox(height: 12),
+              const Text(
+                'Belum ada buku di perpustakaan.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              if (isAdmin) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _showBookFormDialog,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Tambah Buku'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     return RefreshIndicator(
@@ -378,9 +471,9 @@ class _KatalogScreenState extends State<KatalogScreen> {
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.65,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          childAspectRatio: 0.62,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
         ),
         itemCount: isAdmin ? bookProvider.books.length + 1 : bookProvider.books.length,
         itemBuilder: (context, index) {
@@ -394,9 +487,9 @@ class _KatalogScreenState extends State<KatalogScreen> {
           return InkWell(
             onTap: () => _openBookDetail(book),
             child: Card(
-              elevation: 3,
+              elevation: 1.8,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(
@@ -406,15 +499,15 @@ class _KatalogScreenState extends State<KatalogScreen> {
                     child: _buildBookCover(book.image),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           book.title,
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -422,8 +515,8 @@ class _KatalogScreenState extends State<KatalogScreen> {
                         const SizedBox(height: 4),
                         Text(
                           book.author,
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: Colors.blueGrey.shade600,
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -434,7 +527,7 @@ class _KatalogScreenState extends State<KatalogScreen> {
                           'Stok: ${book.stock}',
                           style: TextStyle(
                             color: book.stock > 0 ? Colors.green.shade700 : Colors.red.shade700,
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -447,11 +540,13 @@ class _KatalogScreenState extends State<KatalogScreen> {
                                   onPressed: () => _showBookFormDialog(book: book),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(vertical: 8),
-                                    side: BorderSide(color: Colors.blue.shade300),
+                                    side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.6)),
+                                    foregroundColor: colorScheme.primary,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
                                   child: const Text(
                                     'Edit',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ),
@@ -460,13 +555,15 @@ class _KatalogScreenState extends State<KatalogScreen> {
                                 child: ElevatedButton(
                                   onPressed: () => _deleteBook(book),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red.shade50,
-                                    foregroundColor: Colors.red.shade700,
+                                    backgroundColor: Colors.red.shade600,
+                                    foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 8),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
                                   child: const Text(
                                     'Hapus',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ),
@@ -478,18 +575,18 @@ class _KatalogScreenState extends State<KatalogScreen> {
                             child: ElevatedButton(
                               onPressed: () => _openBookDetail(book),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade50,
-                                foregroundColor: Colors.blue,
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                               child: const Text(
                                 'Pinjam',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),

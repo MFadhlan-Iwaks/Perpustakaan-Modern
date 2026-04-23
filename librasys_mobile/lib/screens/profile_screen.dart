@@ -9,26 +9,36 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isAdmin = user?.role == 'ADMIN';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF155E75)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             child: Column(
               children: [
                 CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.blue.shade100,
+                  radius: 40,
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
                   child: Text(
-                    (user?.name.isNotEmpty == true)
-                        ? user!.name[0].toUpperCase()
-                        : 'U',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
+                    (user?.name.isNotEmpty == true) ? user!.name[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -37,20 +47,21 @@ class ProfileScreen extends StatelessWidget {
                   user?.name ?? 'Pengguna',
                   style: const TextStyle(
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: (user?.role == 'ADMIN') ? Colors.deepPurple.shade50 : Colors.blue.shade50,
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     user?.role ?? 'USER',
-                    style: TextStyle(
-                      color: (user?.role == 'ADMIN') ? Colors.deepPurple : Colors.blue,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -61,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 28),
           const Text(
             'Informasi Akun',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           _ProfileInfoTile(
@@ -93,10 +104,10 @@ class ProfileScreen extends StatelessWidget {
             height: 50,
             child: ElevatedButton.icon(
               onPressed: () => authProvider.logout(),
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout_rounded),
               label: const Text('Logout'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: isAdmin ? const Color(0xFF7C3AED) : colorScheme.error,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -127,12 +138,21 @@ class _ProfileInfoTile extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey.shade700),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: const Color(0xFF334155), size: 18),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -140,12 +160,12 @@ class _ProfileInfoTile extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)),
                 ),
               ],
             ),

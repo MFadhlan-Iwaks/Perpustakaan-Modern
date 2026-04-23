@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/book_model.dart';
+import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 
 class BookDetailScreen extends StatefulWidget {
@@ -95,11 +97,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.watch<AuthProvider>().isAdmin;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Buku'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -115,40 +117,55 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     widget.book.title,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     widget.book.author,
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    style: const TextStyle(fontSize: 15, color: Color(0xFF64748B)),
                   ),
                   const SizedBox(height: 24),
                   _infoTile('Tahun Terbit', widget.book.publishedYear.toString()),
                   _infoTile('Stok', widget.book.stock.toString()),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      onPressed: _isBorrowing ? null : _handleBorrow,
-                      icon: _isBorrowing
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.shopping_bag_outlined),
-                      label: Text(_isBorrowing ? 'Meminjam...' : 'Pinjam Buku'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  if (!isAdmin)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: _isBorrowing ? null : _handleBorrow,
+                        icon: _isBorrowing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.shopping_bag_outlined),
+                        label: Text(_isBorrowing ? 'Meminjam...' : 'Pinjam Buku'),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 18, color: Color(0xFF334155)),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Mode admin: aksi pinjam dinonaktifkan.',
+                              style: TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -164,7 +181,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

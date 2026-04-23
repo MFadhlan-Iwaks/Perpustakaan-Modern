@@ -311,18 +311,20 @@ class _MemberManagementScreenState extends State<MemberManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: colorScheme.primary));
     }
 
     if (_errorMessage != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 36),
+              Icon(Icons.error_outline_rounded, color: Colors.red.shade400, size: 42),
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
@@ -344,40 +346,57 @@ class _MemberManagementScreenState extends State<MemberManagementScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateMemberDialog,
-        icon: const Icon(Icons.person_add),
+        icon: const Icon(Icons.person_add_alt_1_rounded),
         label: const Text('Tambah Anggota'),
       ),
       body: RefreshIndicator(
         onRefresh: _loadMembers,
         child: _members.isEmpty
             ? ListView(
-                children: const [
-                  SizedBox(height: 180),
-                  Center(child: Text('Belum ada data anggota.')),
+                children: [
+                  const SizedBox(height: 180),
+                  Icon(Icons.groups_2_outlined, size: 56, color: Colors.blueGrey.shade300),
+                  const SizedBox(height: 12),
+                  const Center(
+                    child: Text(
+                      'Belum ada data anggota.',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ],
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _members.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final member = _members[index];
+                  final isAdmin = member.role == 'ADMIN';
+
                   return Card(
+                    elevation: 1.6,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12),
                       leading: CircleAvatar(
-                        backgroundColor: member.role == 'ADMIN'
-                            ? Colors.deepPurple.shade100
-                            : Colors.blue.shade100,
+                        backgroundColor: isAdmin
+                            ? const Color(0xFFEDE9FE)
+                            : const Color(0xFFDCFCE7),
                         child: Icon(
-                          member.role == 'ADMIN' ? Icons.security : Icons.person,
-                          color: member.role == 'ADMIN'
-                              ? Colors.deepPurple
-                              : Colors.blue,
+                          isAdmin ? Icons.admin_panel_settings_rounded : Icons.person_rounded,
+                          color: isAdmin
+                              ? const Color(0xFF6D28D9)
+                              : const Color(0xFF15803D),
                         ),
                       ),
-                      title: Text(member.name),
-                      subtitle: Text('${member.email}\nRole: ${member.role}'),
+                      title: Text(
+                        member.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        '${member.email}\nRole: ${member.role}',
+                        style: const TextStyle(color: Color(0xFF64748B)),
+                      ),
                       isThreeLine: true,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -385,12 +404,12 @@ class _MemberManagementScreenState extends State<MemberManagementScreen> {
                           IconButton(
                             tooltip: 'Edit anggota',
                             onPressed: () => _openEditMemberDialog(member),
-                            icon: const Icon(Icons.edit_outlined),
+                            icon: const Icon(Icons.edit_outlined, color: Color(0xFF0F766E)),
                           ),
                           IconButton(
                             tooltip: 'Hapus anggota',
                             onPressed: () => _deleteMember(member),
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626)),
                           ),
                         ],
                       ),

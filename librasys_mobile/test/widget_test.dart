@@ -8,8 +8,8 @@ void main() {
     await tester.pumpWidget(const LibraSysApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('LibraSys'), findsOneWidget);
-    expect(find.text('Masuk ke akun Anda'), findsOneWidget);
+    expect(find.text('Selamat Datang'), findsOneWidget);
+    expect(find.text('Masuk untuk melanjutkan ke LibraSys'), findsOneWidget);
     expect(find.byType(TextField), findsNWidgets(2));
   });
 }

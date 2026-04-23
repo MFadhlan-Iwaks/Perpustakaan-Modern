@@ -17,6 +17,48 @@ class _BorrowingScreenState extends State<BorrowingScreen> {
   final Set<int> _returningIds = <int>{};
   final Set<int> _deletingIds = <int>{};
 
+  Widget _buildSkeletonCard() {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(height: 12, width: double.infinity, color: const Color(0xFFE2E8F0)),
+                      const SizedBox(height: 8),
+                      Container(height: 10, width: 120, color: const Color(0xFFE2E8F0)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(height: 10, width: 180, color: const Color(0xFFE2E8F0)),
+            const SizedBox(height: 8),
+            Container(height: 10, width: 160, color: const Color(0xFFE2E8F0)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,11 +75,11 @@ class _BorrowingScreenState extends State<BorrowingScreen> {
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
       case 'RETURNED':
-        return Colors.green;
+        return const Color(0xFF15803D);
       case 'BORROWED':
-        return Colors.orange;
+        return const Color(0xFFD97706);
       default:
-        return Colors.blueGrey;
+        return const Color(0xFF475569);
     }
   }
 
@@ -157,25 +199,58 @@ class _BorrowingScreenState extends State<BorrowingScreen> {
     final isAdmin = authProvider.isAdmin;
 
     if (borrowingProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: 5,
+        separatorBuilder: (_, index) => const SizedBox(height: 12),
+        itemBuilder: (_, index) => _buildSkeletonCard(),
+      );
     }
 
     if (borrowingProvider.errorMessage != null) {
       return Center(
-        child: Text(
-          'Gagal memuat riwayat:\n${borrowingProvider.errorMessage}',
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.red),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 52, color: Colors.red.shade400),
+              const SizedBox(height: 12),
+              Text(
+                'Gagal memuat riwayat:\n${borrowingProvider.errorMessage}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => borrowingProvider.loadBorrowings(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (borrowingProvider.borrowings.isEmpty) {
       return Center(
-        child: Text(
-          isAdmin
-              ? 'Belum ada data transaksi peminjaman.'
-              : 'Belum ada riwayat peminjaman.',
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.history_toggle_off_rounded, size: 56, color: Colors.blueGrey.shade300),
+              const SizedBox(height: 12),
+              Text(
+                isAdmin
+                    ? 'Belum ada data transaksi peminjaman.'
+                    : 'Belum ada riwayat peminjaman.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -235,9 +310,14 @@ class _BorrowingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
+      elevation: 1.6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          color: Colors.white,
+        ),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,13 +326,13 @@ class _BorrowingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(Icons.history, color: statusColor),
+                  child: Icon(Icons.history_rounded, color: statusColor),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -263,7 +343,8 @@ class _BorrowingCard extends StatelessWidget {
                         borrowing.bookTitle ?? 'Judul tidak tersedia',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -271,7 +352,7 @@ class _BorrowingCard extends StatelessWidget {
                         isAdmin
                             ? 'Peminjam: ${borrowing.userName ?? '-'}'
                             : 'Riwayat peminjaman Anda',
-                        style: const TextStyle(color: Colors.grey),
+                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
                       ),
                     ],
                   ),
@@ -288,7 +369,7 @@ class _BorrowingCard extends StatelessWidget {
                     style: TextStyle(
                       color: statusColor,
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -310,7 +391,7 @@ class _BorrowingCard extends StatelessWidget {
                         if (borrowing.status.toUpperCase() == 'RETURNED')
                           const Text(
                             'Sudah dikembalikan',
-                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: Color(0xFF15803D), fontWeight: FontWeight.w600),
                           )
                         else
                           TextButton.icon(
@@ -334,18 +415,18 @@ class _BorrowingCard extends StatelessWidget {
                                 )
                               : const Icon(Icons.delete_outline),
                           label: Text(isDeleting ? 'Menghapus...' : 'Hapus'),
-                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
                         ),
                       ],
                     )
                   : borrowing.status.toUpperCase() == 'RETURNED'
                       ? const Text(
                           'Sudah dikembalikan',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: Color(0xFF15803D), fontWeight: FontWeight.w600),
                         )
                       : const Text(
                           'Menunggu verifikasi Admin',
-                          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                          style: TextStyle(color: Color(0xFF64748B), fontStyle: FontStyle.italic),
                         ),
             ),
           ],
