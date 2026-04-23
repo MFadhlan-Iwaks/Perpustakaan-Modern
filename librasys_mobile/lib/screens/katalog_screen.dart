@@ -5,6 +5,9 @@ import '../models/book_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/book_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/catalog/catalog_book_tiles.dart';
+import '../widgets/common/loading_skeletons.dart';
+import '../widgets/common/state_feedback.dart';
 import 'book_detail_screen.dart';
 
 class KatalogScreen extends StatefulWidget {
@@ -16,35 +19,6 @@ class KatalogScreen extends StatefulWidget {
 
 class _KatalogScreenState extends State<KatalogScreen> {
   final ApiService _apiService = ApiService();
-
-  Widget _buildSkeletonCard() {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(color: const Color(0xFFE2E8F0)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(height: 12, width: double.infinity, color: const Color(0xFFE2E8F0)),
-                const SizedBox(height: 8),
-                Container(height: 10, width: 90, color: const Color(0xFFE2E8F0)),
-                const SizedBox(height: 10),
-                Container(height: 30, width: double.infinity, color: const Color(0xFFE2E8F0)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildCoverPlaceholder({
     required IconData icon,
@@ -293,42 +267,6 @@ class _KatalogScreenState extends State<KatalogScreen> {
     }
   }
 
-  Widget _buildAddBookCard() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: () => _showBookFormDialog(),
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: LinearGradient(
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.1),
-              colorScheme.tertiary.withValues(alpha: 0.1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.28)),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add_box_rounded, size: 44, color: colorScheme.primary),
-              const SizedBox(height: 10),
-              Text(
-                'Tambah Buku',
-                style: TextStyle(fontWeight: FontWeight.w800, color: colorScheme.primary),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildBookCover(String? imageUrl) {
     if (imageUrl == null || imageUrl.trim().isEmpty) {
       return _buildCoverPlaceholder(
@@ -395,7 +333,6 @@ class _KatalogScreenState extends State<KatalogScreen> {
   Widget build(BuildContext context) {
     final bookProvider = Provider.of<BookProvider>(context);
     final isAdmin = Provider.of<AuthProvider>(context).isAdmin;
-    final colorScheme = Theme.of(context).colorScheme;
 
     if (bookProvider.isLoading) {
       return GridView.builder(
@@ -407,61 +344,32 @@ class _KatalogScreenState extends State<KatalogScreen> {
           mainAxisSpacing: 14,
         ),
         itemCount: 6,
-        itemBuilder: (_, index) => _buildSkeletonCard(),
+        itemBuilder: (_, index) => const BookGridSkeletonCard(),
       );
     }
 
     if (bookProvider.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cloud_off_rounded, size: 52, color: Colors.red.shade400),
-              const SizedBox(height: 12),
-              Text(
-                'Gagal memuat buku:\n${bookProvider.errorMessage}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () => bookProvider.loadBooks(),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
-        ),
+      return StateFeedback(
+        icon: Icons.cloud_off_rounded,
+        iconColor: Colors.red.shade400,
+        message: 'Gagal memuat buku:\n${bookProvider.errorMessage}',
+        actionLabel: 'Coba Lagi',
+        onAction: () => bookProvider.loadBooks(),
       );
     }
 
     if (bookProvider.books.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.library_books_outlined, size: 56, color: Colors.blueGrey.shade300),
-              const SizedBox(height: 12),
-              const Text(
-                'Belum ada buku di perpustakaan.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              if (isAdmin) ...[
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: _showBookFormDialog,
-                  icon: const Icon(Icons.add_rounded),
-                  label: const Text('Tambah Buku'),
-                ),
-              ],
-            ],
-          ),
-        ),
+      return StateFeedback(
+        icon: Icons.library_books_outlined,
+        iconColor: Colors.blueGrey.shade300,
+        message: 'Belum ada buku di perpustakaan.',
+        footer: isAdmin
+            ? FilledButton.icon(
+                onPressed: _showBookFormDialog,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Tambah Buku'),
+              )
+            : null,
       );
     }
 
@@ -478,125 +386,19 @@ class _KatalogScreenState extends State<KatalogScreen> {
         itemCount: isAdmin ? bookProvider.books.length + 1 : bookProvider.books.length,
         itemBuilder: (context, index) {
           if (isAdmin && index == 0) {
-            return _buildAddBookCard();
+            return AddBookTile(onTap: _showBookFormDialog);
           }
 
           final dataIndex = isAdmin ? index - 1 : index;
           final book = bookProvider.books[dataIndex];
 
-          return InkWell(
-            onTap: () => _openBookDetail(book),
-            child: Card(
-              elevation: 1.8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _buildBookCover(book.image),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          book.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13.5,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          book.author,
-                          style: TextStyle(
-                            color: Colors.blueGrey.shade600,
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Stok: ${book.stock}',
-                          style: TextStyle(
-                            color: book.stock > 0 ? Colors.green.shade700 : Colors.red.shade700,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (isAdmin)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () => _showBookFormDialog(book: book),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.6)),
-                                    foregroundColor: colorScheme.primary,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text(
-                                    'Edit',
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => _deleteBook(book),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text(
-                                    'Hapus',
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        else
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () => _openBookDetail(book),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              child: const Text(
-                                'Pinjam',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return CatalogBookTile(
+            book: book,
+            isAdmin: isAdmin,
+            cover: _buildBookCover(book.image),
+            onOpenDetail: () => _openBookDetail(book),
+            onEdit: () => _showBookFormDialog(book: book),
+            onDelete: () => _deleteBook(book),
           );
         },
       ),

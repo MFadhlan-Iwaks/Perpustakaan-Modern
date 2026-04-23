@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/book_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/book_detail/book_detail_widgets.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Book book;
@@ -16,50 +17,6 @@ class BookDetailScreen extends StatefulWidget {
 class _BookDetailScreenState extends State<BookDetailScreen> {
   final ApiService _apiService = ApiService();
   bool _isBorrowing = false;
-
-  Widget _buildCover() {
-    final imageUrl = widget.book.image;
-
-    if (imageUrl == null || imageUrl.trim().isEmpty) {
-      return Container(
-        height: 260,
-        width: double.infinity,
-        color: Colors.grey.shade200,
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.menu_book, size: 72, color: Colors.blue),
-            SizedBox(height: 12),
-            Text('Tidak ada cover tersedia'),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      height: 260,
-      width: double.infinity,
-      color: Colors.grey.shade200,
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return const Center(child: CircularProgressIndicator());
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.broken_image, size: 72, color: Colors.redAccent),
-              SizedBox(height: 12),
-              Text('Cover gagal dimuat'),
-            ],
-          );
-        },
-      ),
-    );
-  }
 
   Future<void> _handleBorrow() async {
     setState(() {
@@ -107,7 +64,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildCover(),
+            BookCoverPanel(imageUrl: widget.book.image),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -126,8 +83,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     style: const TextStyle(fontSize: 15, color: Color(0xFF64748B)),
                   ),
                   const SizedBox(height: 24),
-                  _infoTile('Tahun Terbit', widget.book.publishedYear.toString()),
-                  _infoTile('Stok', widget.book.stock.toString()),
+                  BookDetailInfoTile(label: 'Tahun Terbit', value: widget.book.publishedYear.toString()),
+                  BookDetailInfoTile(label: 'Stok', value: widget.book.stock.toString()),
                   const SizedBox(height: 24),
                   if (!isAdmin)
                     SizedBox(
@@ -171,32 +128,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _infoTile(String label, String value) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.black87),
-            ),
-          ),
-        ],
       ),
     );
   }
