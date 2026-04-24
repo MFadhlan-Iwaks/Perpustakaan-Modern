@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
 const db = require('./config/db');
 const path = require('path');
 
@@ -20,6 +21,21 @@ app.use('/api', authRoutes);
 app.use('/api', bookRoutes);
 app.use('/api', borrowingRoutes);
 app.use('/api', userRoutes);
+
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ message: 'Ukuran file maksimal 2MB.' });
+        }
+        return res.status(400).json({ message: `Upload gagal: ${err.message}` });
+    }
+
+    if (err && err.message) {
+        return res.status(400).json({ message: err.message });
+    }
+
+    return next();
+});
 
 app.get('/', (req, res) => {
     res.json({ message: 'Selamat datang di API Sistem Manajemen Perpustakaan' });

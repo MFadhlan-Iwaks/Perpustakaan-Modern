@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../models/book_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/book_provider.dart';
@@ -19,6 +20,7 @@ class KatalogScreen extends StatefulWidget {
 
 class _KatalogScreenState extends State<KatalogScreen> {
   final ApiService _apiService = ApiService();
+  static const int _maxUploadBytes = 2 * 1024 * 1024;
 
   Widget _buildCoverPlaceholder({
     required IconData icon,
@@ -180,8 +182,25 @@ class _KatalogScreenState extends State<KatalogScreen> {
                         onPressed: isSubmitting
                             ? null
                             : () async {
-                                final image = await imagePicker.pickImage(source: ImageSource.gallery);
+                                final image = await imagePicker.pickImage(
+                                  source: ImageSource.gallery,
+                                  imageQuality: 75,
+                                  maxWidth: 1600,
+                                  maxHeight: 1600,
+                                );
                                 if (image == null) return;
+
+                                final fileSize = await File(image.path).length();
+                                if (fileSize > _maxUploadBytes) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Ukuran gambar masih terlalu besar. Pilih gambar lain.'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 setDialogState(() {
                                   selectedImage = image;
                                 });
